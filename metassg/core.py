@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import os
+import os, errno
 from abc import abstractmethod, ABCMeta
 
 
@@ -9,6 +9,8 @@ class MetaSSG(metaclass=ABCMeta):
     def __init__(self, ifpath, ofpath):
         self.ifpath = ifpath
         self.ofpath = ofpath
+        self.mdexts =  {'.markdown', '.mdown', '.mkdn', '.md', '.mkd', '.mdwn',
+        '.mdtxt', '.mdtext', '.text', '.txt'}
 
     def clean(self):
         """Clean all legacy generated pages"""
@@ -17,8 +19,9 @@ class MetaSSG(metaclass=ABCMeta):
                 if os.path.splitext(f)[1] in {'.html', '.htm'}:
                     try:
                         os.remove(os.path.join(self.ofpath, f))
-                    except OSError as e:
-                        print('warning: unable to delete {}'.format(f))
+                    except OSError as e: # no propagation
+                        if e.errno != errno.ENOENT: # silent removal
+                            print('warning: Unable to delete {}'.format(f))
 
     def load_templates(self, fpath):
         """\
@@ -26,7 +29,16 @@ class MetaSSG(metaclass=ABCMeta):
             + `fpath` can be filename and directory
             + FileSystemLoader is specified
         """
-        pass
+        if os.path.exists(fpath):
+            tmpls = []
+
+            for f in [fpath] if os.path.isfile(fpath) else os.listdir(fpath):
+                if os.path.splitext(f)[1] in self.mdexts:
+                    tmpls.append(f)
+
+            return tmpls
+        else:
+            raise OSError(errno.ENOENT)
 
     @abstractmethod
     def render(self, posts):
