@@ -1,7 +1,7 @@
-ssgcore
+metassg
 =======
 
-SSG (Static site generator) core for extensible use.
+SSG (Static site generator) base class for extensible use.
 
 > WIP
 
