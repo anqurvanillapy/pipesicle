@@ -1,14 +1,24 @@
 # -*- coding: utf-8 -*-
 
+import os
 from abc import abstractmethod, ABCMeta
 
 
 class MetaSSG(metaclass=ABCMeta):
     """SSG base class"""
-    @abstractmethod
+    def __init__(self, ifpath, ofpath):
+        self.ifpath = ifpath
+        self.ofpath = ofpath
+
     def clean(self):
         """Clean all legacy generated pages"""
-        pass
+        if os.path.isdir(self.ofpath):
+            for f in os.listdir(self.ofpath):
+                if os.path.splitext(f)[1] in {'.html', '.htm'}:
+                    try:
+                        os.remove(os.path.join(self.ofpath, f))
+                    except OSError as e:
+                        print('warning: unable to delete {}'.format(f))
 
     def load_templates(self, fpath):
         """\
