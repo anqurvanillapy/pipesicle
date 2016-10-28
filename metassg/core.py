@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import os, errno
+import errno
+from os import remove, path, listdir
 from abc import abstractmethod, ABCMeta
 
 
@@ -19,11 +20,11 @@ class MetaSSG(metaclass=ABCMeta):
 
     def clean(self):
         """Clean all legacy generated pages"""
-        if os.path.isdir(self.ofpath):
-            for f in os.listdir(self.ofpath):
-                if os.path.splitext(f)[1] in {'.html', '.htm'}:
+        if path.isdir(self.ofpath):
+            for f in listdir(self.ofpath):
+                if path.splitext(f)[1] in {'.html', '.htm'}:
                     try:
-                        os.remove(os.path.join(self.ofpath, f))
+                        remove(path.join(self.ofpath, f))
                     except OSError as e: # no propagation
                         if e.errno != errno.ENOENT: # silent removal
                             print('warning: Unable to delete {}'.format(f))
@@ -34,11 +35,12 @@ class MetaSSG(metaclass=ABCMeta):
             + `fpath` can be filename and directory
             + FileSystemLoader is specified
         """
-        if os.path.exists(fpath):
+        if path.exists(fpath):
             tmpls = []
 
-            for f in [fpath] if os.path.isfile(fpath) else os.listdir(fpath):
-                if os.path.splitext(f)[1] in self.md_exts:
+            for f in [fpath] if path.isfile(fpath) else \
+                list(map(lambda x: path.join(fpath, x), listdir(fpath))):
+                if path.splitext(f)[1] in self.md_exts:
                     tmpls.append(f)
 
             if not tmpls:
@@ -52,8 +54,20 @@ class MetaSSG(metaclass=ABCMeta):
         """Render the posts (Jinja2 templates)"""
         pass
 
-    def publish(self, posts):
+    def publish_posts(self, posts):
         """Publish rendered posts"""
+        pass
+
+    def publish_index(self, posts):
+        """Publish index for rendered posts"""
+        pass
+
+    def publish_properties(self, posts):
+        """Publish list of properties"""
+        pass
+
+    def publish_states(self, posts):
+        """Publish list of states"""
         pass
 
     def send_static(self, fpath):
