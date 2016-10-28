@@ -3,7 +3,7 @@
 import unittest
 
 from shutil import rmtree
-from os import path, mkdir, remove
+from os import path, makedirs, remove
 from jinja2 import Environment, exceptions
 
 from .mock_ssg import *
@@ -11,17 +11,17 @@ from .data import md
 
 
 class TestSSGBasic(unittest.TestCase):
-    """\
-    Test the basic functionality
-    """
+    """Test the basic functionality"""
     def setUp(self):
         self.invalid_empty_markdown_file = 'foo.mdx'
         self.valid_markdown_file0 = 'foo.md'
         self.valid_markdown_file1 = 'bar.md'
-        self.tmpdir = 'temp'
+        self.output_html_file = 'foo.index'
+        self.tmpdir = 'temp' # assume it doesn't exist
         self.pymd_exts = ['extra', 'meta']
 
-        mkdir(self.tmpdir)
+        # TODO: Replace it with tempfile.mkdtemp()
+        makedirs(self.tmpdir, exist_ok=True)
         open(self.invalid_empty_markdown_file, 'w').close()
         open(path.join(self.tmpdir, self.invalid_empty_markdown_file), 'w').close()
         with open(self.valid_markdown_file0, 'w') as f:
@@ -42,7 +42,7 @@ class TestSSGBasic(unittest.TestCase):
             self.ssg.load_posts(self.ssg.ifpath)
 
     def test_load_templates(self):
-        self.assertTrue(self.ssg.load_templates(self.ssg.tmplpath))
+        self.assertIn('index', self.ssg.load_templates(self.ssg.tmplpath))
 
     def test_load_invalid_markdown_file(self):
         self.ssg.ifpath = self.invalid_empty_markdown_file
@@ -59,17 +59,29 @@ class TestSSGBasic(unittest.TestCase):
     def test_generated_page_content(self):
         with open(path.join(self.tmpdir, self.valid_markdown_file0), 'w') as f:
             f.write(md.markdown_text0)
-        self.ssg.ifpath = self.tmpdir
         posts = self.ssg.load_posts(self.ssg.ifpath)
         self.assertTrue(posts)
         
-        posts = self.ssg.render(posts)     
-        self.assertTrue(posts[0]['meta'])
-        self.assertTrue(posts[0]['html'])
-        self.assertEqual(posts[0]['fname'], 'foo.html')
+        pages = self.ssg.render(posts)     
+        self.assertTrue(pages[0]['meta'])
+        self.assertTrue(pages[0]['html'])
+        self.assertEqual(pages[0]['fname'], 'foo.html')
+
+    def test_publish_invalid_page_dict(self):
+        with self.assertRaises(TypeError):
+            self.ssg.publish([{'foo': 'bar'}])
 
     def test_publish_single_page(self):
-        pass
+        self.ssg.ofpath = path.join(self.tmpdir, self.output_html_file)
+        post = self.ssg.load_posts(self.valid_markdown_file0)
+        self.assertTrue(post)
+
+        tmpl = self.ssg.load_templates(self.ssg.tmplpath)
+        self.assertTrue(tmpl)
+
+        page = self.ssg.render(post)
+        self.ssg.publish(page, tmpl)
+        self.assertTrue(path.exists(self.ssg.ofpath))
 
     def test_publish_all(self):
         with open(path.join(self.tmpdir, self.valid_markdown_file0), 'w') as f:

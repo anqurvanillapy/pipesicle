@@ -1,7 +1,22 @@
 # -*- coding: utf-8 -*-
+"""
+    MetaSSG
+    =======
+
+    Abstract class for creating homemade static site generator
+
+    - Abstract methods:
+        + `render()`: Render pages
+    - Abstract properties:
+        + `tmplpath`: Template path for Jinja2 Environment
+        + `ifpath`: input path (output path is `site` by default)
+    - Notice:
+        + The page dict should have 3 keys: `html`, `meta`, and `fname`
+"""
+
 
 import errno, codecs
-from os import remove, path, listdir
+from os import makedirs, remove, path, listdir, strerror
 from abc import abstractmethod, ABCMeta
 
 from jinja2 import Environment, FileSystemLoader, exceptions
@@ -9,6 +24,7 @@ from jinja2 import Environment, FileSystemLoader, exceptions
 
 class MetaSSG(metaclass=ABCMeta):
     """SSG base class"""
+    _ofpath = 'site'
     _pymd_exts = []
     md_exts =  {'.markdown', '.mdown', '.mkdn', '.md', '.mkd', '.mdwn', '.mdtxt',
         '.mdtext', '.text', '.txt'}
@@ -23,8 +39,12 @@ class MetaSSG(metaclass=ABCMeta):
     def ifpath(self): pass
 
     @property
-    @abstractmethod
-    def ofpath(self): pass
+    def ofpath(self):
+        return self._ofpath
+
+    @ofpath.setter
+    def ofpath(self, val):
+        self._ofpath = val
 
     @property
     def pymd_exts(self):
@@ -48,12 +68,12 @@ class MetaSSG(metaclass=ABCMeta):
 
     def load_templates(self, fpath):
         """\
-        - Load templates using Jinja2 Environment
-            + `fpath` should be directory
-            + FileSystemLoader is specified
-        - Template extensions should be only `.html`
-        - Template names should be one of the following
-            + layout, index, post, states, properties, misc
+            - Load templates using Jinja2 Environment
+                + `fpath` should be directory
+                + FileSystemLoader is specified
+            - Template extensions should be only `.html`
+            - Template names should be one of the following
+                + layout, index, post, states, properties, misc
         """
         env = Environment(loader=FileSystemLoader(fpath))
         tmpls = {}
@@ -62,7 +82,7 @@ class MetaSSG(metaclass=ABCMeta):
             try:
                 tmpls[t] = env.get_template('{}.html'.format(t))
             except exceptions.TemplateNotFound as e:
-                print('warning: no template named {}'.format(t))
+                print('warning: no template named {}.html'.format(t))
 
         return tmpls
 
@@ -80,43 +100,28 @@ class MetaSSG(metaclass=ABCMeta):
                 print('warning: Nothing to publish')
             return posts
         else:
-            raise OSError(errno.ENOENT)
+            raise OSError(errno.ENOENT, strerror(errno.ENOENT), fpath)
 
     @abstractmethod
     def render(self, posts):
         """Render the posts (Jinja2 templates)"""
         pass
 
-    def publish_page(self, page):
-        """Publish single page"""
-        # try:
-        #     with codec.open(self.ofpath, encoding='utf-8',
-        #         errors='xmlcharrefreplace', 'w') as f:
-        #         f.write()
-        # except Exception as e:
-        #     raise e
-        pass
-
-    def publish_posts(self, posts):
+    def publish(self, pages, tmpls):
         """Publish rendered posts"""
-        # for p in posts:
-        #     try:
-                
-        #     except Exception as e:
-        #         raise e
-        pass
+        is_single = len(pages) == 1
+        dest = lambda x: self.ofpath if is_single else path.join(self.ofpath, x)
 
-    def publish_index(self, posts):
-        """Publish index for rendered posts"""
-        pass
+        if not is_single:
+            makedirs(self.ofpath, exist_ok=True)
 
-    def publish_properties(self, posts):
-        """Publish list of properties"""
-        pass
-
-    def publish_states(self, posts):
-        """Publish list of states"""
-        pass
+        for p in pages:
+            if all(k in p for k in {'html', 'meta', 'fname'}):
+                with codecs.open(dest(p['fname']), 'w', encoding='utf-8',
+                    errors='xmlcharrefreplace') as f:
+                    f.write(tmpls.get(*p['meta']['type']).render(**p))
+            else:
+                raise TypeError('Invalid page dict')
 
     def send_static(self, fpath):
         """Send static assets to destination directory"""
