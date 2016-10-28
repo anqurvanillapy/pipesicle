@@ -9,8 +9,13 @@ class MetaSSG(metaclass=ABCMeta):
     def __init__(self, ifpath, ofpath):
         self.ifpath = ifpath
         self.ofpath = ofpath
-        self.mdexts =  {'.markdown', '.mdown', '.mkdn', '.md', '.mkd', '.mdwn',
+        self.md_exts =  {'.markdown', '.mdown', '.mkdn', '.md', '.mkd', '.mdwn',
         '.mdtxt', '.mdtext', '.text', '.txt'}
+        self.pymd_exts = []
+
+    def add_pymd_exts(self, exts):
+        prefix = 'markdown.extensions.{}'
+        self.pymd_exts += list(map(lambda x: prefix.format(x), exts))
 
     def clean(self):
         """Clean all legacy generated pages"""
@@ -33,22 +38,24 @@ class MetaSSG(metaclass=ABCMeta):
             tmpls = []
 
             for f in [fpath] if os.path.isfile(fpath) else os.listdir(fpath):
-                if os.path.splitext(f)[1] in self.mdexts:
+                if os.path.splitext(f)[1] in self.md_exts:
                     tmpls.append(f)
 
+            if not tmpls:
+                print('warning: Nothing to publish')
             return tmpls
         else:
             raise OSError(errno.ENOENT)
 
     @abstractmethod
-    def render(self, posts):
-        """\
-        - Render the posts
-            + Using Jinja2 render the templates
-            + Publish pages into the destination directory
-        """
+    def render(self, tmpls):
+        """Render the posts (Jinja2 templates)"""
         pass
 
-    def send_static(self):
+    def publish(self, posts):
+        """Publish rendered posts"""
+        pass
+
+    def send_static(self, fpath):
         """Send static assets to destination directory"""
         pass
