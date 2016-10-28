@@ -1,22 +1,39 @@
 # -*- coding: utf-8 -*-
 
-import errno
+import errno, codecs
 from os import remove, path, listdir
 from abc import abstractmethod, ABCMeta
+
+from jinja2 import Environment, FileSystemLoader, exceptions
 
 
 class MetaSSG(metaclass=ABCMeta):
     """SSG base class"""
-    def __init__(self, ifpath, ofpath):
-        self.ifpath = ifpath
-        self.ofpath = ofpath
-        self.md_exts =  {'.markdown', '.mdown', '.mkdn', '.md', '.mkd', '.mdwn',
-        '.mdtxt', '.mdtext', '.text', '.txt'}
-        self.pymd_exts = []
+    _pymd_exts = []
+    md_exts =  {'.markdown', '.mdown', '.mkdn', '.md', '.mkd', '.mdwn', '.mdtxt',
+        '.mdtext', '.text', '.txt'}
+    tmpl_types = {'layout', 'index', 'post', 'states', 'properties', 'misc'}
 
-    def add_pymd_exts(self, exts):
+    @property
+    @abstractmethod
+    def tmplpath(self): pass
+
+    @property
+    @abstractmethod
+    def ifpath(self): pass
+
+    @property
+    @abstractmethod
+    def ofpath(self): pass
+
+    @property
+    def pymd_exts(self):
+        return self._pymd_exts
+
+    @pymd_exts.setter
+    def pymd_exts(self, exts):
         prefix = 'markdown.extensions.{}'
-        self.pymd_exts += list(map(lambda x: prefix.format(x), exts))
+        self._pymd_exts += list(map(lambda x: prefix.format(x), exts))
 
     def clean(self):
         """Clean all legacy generated pages"""
@@ -32,30 +49,61 @@ class MetaSSG(metaclass=ABCMeta):
     def load_templates(self, fpath):
         """\
         - Load templates using Jinja2 Environment
-            + `fpath` can be filename and directory
+            + `fpath` should be directory
             + FileSystemLoader is specified
+        - Template extensions should be only `.html`
+        - Template names should be one of the following
+            + layout, index, post, states, properties, misc
         """
+        env = Environment(loader=FileSystemLoader(fpath))
+        tmpls = {}
+
+        for t in self.tmpl_types:
+            try:
+                tmpls[t] = env.get_template('{}.html'.format(t))
+            except exceptions.TemplateNotFound as e:
+                print('warning: no template named {}'.format(t))
+
+        return tmpls
+
+    def load_posts(self, fpath):
+        """Load valid posts from source directory"""
         if path.exists(fpath):
-            tmpls = []
+            posts = []
 
             for f in [fpath] if path.isfile(fpath) else \
                 list(map(lambda x: path.join(fpath, x), listdir(fpath))):
                 if path.splitext(f)[1] in self.md_exts:
-                    tmpls.append(f)
+                    posts.append(f)
 
-            if not tmpls:
+            if not posts:
                 print('warning: Nothing to publish')
-            return tmpls
+            return posts
         else:
             raise OSError(errno.ENOENT)
 
     @abstractmethod
-    def render(self, tmpls):
+    def render(self, posts):
         """Render the posts (Jinja2 templates)"""
+        pass
+
+    def publish_page(self, page):
+        """Publish single page"""
+        # try:
+        #     with codec.open(self.ofpath, encoding='utf-8',
+        #         errors='xmlcharrefreplace', 'w') as f:
+        #         f.write()
+        # except Exception as e:
+        #     raise e
         pass
 
     def publish_posts(self, posts):
         """Publish rendered posts"""
+        # for p in posts:
+        #     try:
+                
+        #     except Exception as e:
+        #         raise e
         pass
 
     def publish_index(self, posts):
