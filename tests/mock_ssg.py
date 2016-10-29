@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from metassg import MetaSSG
+from postocol import Postocol
 
 import codecs
 from os.path import basename, splitext
@@ -8,7 +8,7 @@ from markdown import Markdown
 from bs4 import BeautifulSoup
 
 
-class MockSSG(MetaSSG):
+class MockSSG(Postocol):
     """\
         - Mock SSG for multiple usage, e.g.
             + slideshow generator (without `clean()` method)

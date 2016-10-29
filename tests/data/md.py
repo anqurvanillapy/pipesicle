@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 markdown_text0 = """\
+title:      Hello
 type:       post
 states:     unfinished
 properties: randumb
@@ -14,6 +15,7 @@ barz
 """
 
 markdown_text1 = """\
+title:      Aloha
 type:       index
 
 # Hello, world!

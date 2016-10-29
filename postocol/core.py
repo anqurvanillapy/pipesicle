@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-    MetaSSG
-    =======
+    Postocol
+    ========
 
-    Abstract class for creating homemade static site generator
+    Posting Protocol: Abstract class for creating homemade static site generator
 
     - Abstract methods:
         + `render()`: Render pages
@@ -22,7 +22,7 @@ from abc import abstractmethod, ABCMeta
 from jinja2 import Environment, FileSystemLoader, exceptions
 
 
-class MetaSSG(metaclass=ABCMeta):
+class Postocol(metaclass=ABCMeta):
     """SSG base class"""
     _ofpath = 'site'
     _pymd_exts = []

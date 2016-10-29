@@ -1,7 +1,8 @@
-metassg
-=======
+postocol
+========
 
-SSG (Static site generator) base class for extensible use.
+**Posting Protocol**, SSG (Static site generator) abstract class for extensible
+use.
 
 > WIP
 
