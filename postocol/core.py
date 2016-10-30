@@ -11,11 +11,12 @@
         + `tmplpath`: Template path for Jinja2 Environment
         + `ifpath`: input path (output path is `site` by default)
     - Notice:
-        + The page dict should have 3 keys: `content`, `meta`, and `fname`
+        + Page dict should contain at least 3 keys: `content`, `meta`, and `fname`
 """
 
 
 import errno, codecs
+from shutil import copytree
 from os import makedirs, remove, path, listdir, strerror
 from abc import abstractmethod, ABCMeta
 
@@ -24,7 +25,8 @@ from jinja2 import Environment, FileSystemLoader, exceptions
 
 class Postocol(metaclass=ABCMeta):
     """SSG base class"""
-    _ofpath = 'site'
+    ofpath = 'site'
+    staticpath = 'static'
     _pymd_exts = []
     md_exts =  {'.markdown', '.mdown', '.mkdn', '.md', '.mkd', '.mdwn', '.mdtxt',
                 '.mdtext', '.text', '.txt'}
@@ -37,14 +39,6 @@ class Postocol(metaclass=ABCMeta):
     @property
     @abstractmethod
     def ifpath(self): pass
-
-    @property
-    def ofpath(self):
-        return self._ofpath
-
-    @ofpath.setter
-    def ofpath(self, val):
-        self._ofpath = val
 
     @property
     def pymd_exts(self):
@@ -128,4 +122,7 @@ class Postocol(metaclass=ABCMeta):
 
     def send_static(self, fpath):
         """Send static assets to destination directory"""
-        pass
+        try:
+            copytree(self.staticpath, fpath)
+        except Exception as e:
+            raise e

@@ -15,7 +15,8 @@ class MockSSG(Postocol):
             + blog, wiki (with `clean()` method)
     """
     tmplpath = 'tests/data'
-    ifpath = 'temp'
+    staticpath = 'tests/data/static'
+    ifpath = '' # abstract property, but replaced with temp file/dir
 
     def render(self, posts):
         """Render Jinja2 templates"""

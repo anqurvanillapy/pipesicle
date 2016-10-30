@@ -119,14 +119,34 @@ class TestSSGBasic(unittest.TestCase):
             self.ssg.publish(pages, tmpls)
             self.assertTrue(Path(self.ssg.ofpath).exists)
             
-            # private test case tearDown: remove `index.html`
+            # private test case tearDown: remove `site`
             try:
                 rmtree(self.ssg.ofpath)
             except OSError as e:
                 raise e
 
     def test_send_static_assets(self):
-        pass
+        dest = 'static'
+        self.ssg.send_static(dest)
+
+        asset = Path(dest) / 'style.css'
+        self.assertTrue(asset.exists())
+
+        # private test case tearDown: remove `static`
+        try:
+            rmtree(dest)
+        except OSError as e:
+            raise e
 
     def test_clean_generated_pages(self):
-        pass
+        with tmpdir() as tmp:
+            tmp_path = Path(tmp)
+            file_to_clean = tmp_path / 'foo.html'
+            file_to_clean.write_text('')
+            file_not_to_clean = tmp_path / 'foo.txt'
+            file_not_to_clean.write_text('')
+
+            self.ssg.ofpath = str(tmp_path)
+            self.ssg.clean()
+            self.assertFalse(file_to_clean.exists())
+            self.assertTrue(file_not_to_clean.exists())
