@@ -3,6 +3,7 @@
 import unittest
 
 from os import remove
+from shutil import rmtree
 from pathlib import Path
 from tempfile import \
     NamedTemporaryFile as tmpfile, \
@@ -14,10 +15,6 @@ from .data import md
 
 class TestSSGBasic(unittest.TestCase):
     """Test the basic functionality"""
-    def setUp(self):
-        self.valid_markdown_file = 'foo.md'
-        self.invalide_markdown_file = 'foo.mdx'
-
     @classmethod
     def setUpClass(cls):
         cls.ssg = MockSSG()
@@ -50,16 +47,16 @@ class TestSSGBasic(unittest.TestCase):
     def test_filepath_nothing_to_publish(self):
         with tmpdir() as tmp:
             tmp_path = Path(tmp)
-            invalid_md = tmp_path / self.invalide_markdown_file
-            invalid_md.write_text(md.markdown_text0)
+            invalid_md = tmp_path / 'foo.mdx'
+            invalid_md.write_text(md.markdown_text['content'][0])
             self.ssg.ifpath = str(tmp_path)
             self.assertFalse(self.ssg.load_posts(self.ssg.ifpath))
 
     def test_generated_page_content(self):
         with tmpdir() as tmp:
             tmp_path = Path(tmp)
-            valid_md = tmp_path / self.valid_markdown_file
-            valid_md.write_text(md.markdown_text0)
+            valid_md = tmp_path / md.markdown_text['fname'][0]
+            valid_md.write_text(md.markdown_text['content'][0])
             self.ssg.ifpath = str(tmp_path)
             posts = self.ssg.load_posts(self.ssg.ifpath)
             self.assertTrue(posts)
@@ -78,8 +75,8 @@ class TestSSGBasic(unittest.TestCase):
 
         with tmpdir() as tmp:
             tmp_path = Path(tmp)
-            valid_md = tmp_path / self.valid_markdown_file
-            valid_md.write_text(md.markdown_text1)
+            valid_md = tmp_path / md.markdown_text['fname'][0]
+            valid_md.write_text(md.markdown_text['content'][1])
 
             self.ssg.ofpath = output_html_file
             post = self.ssg.load_posts(str(valid_md))
@@ -89,14 +86,47 @@ class TestSSGBasic(unittest.TestCase):
             self.assertTrue(tmpl)
 
             page = self.ssg.render(post)
+            self.assertTrue(page)
+
             self.ssg.publish(page, tmpl)
             self.assertTrue(Path(self.ssg.ofpath).exists())
             
-            # individual test case tearDown
+            # private test case tearDown: remove `index.html`
             try:
                 remove(output_html_file)
             except OSError as e:
                 raise e
 
     def test_publish_all(self):
+        with tmpdir() as tmp:
+            tmp_path = Path(tmp)
+            post_text = md.markdown_text['content']
+            fnames = md.markdown_text['fname']
+
+            touch_md = lambda x: tmp_path / x
+            for i in range(len(post_text)):
+                touch_md(fnames[i]).write_text(post_text[i])
+
+            posts = self.ssg.load_posts(str(tmp_path))
+            self.assertTrue(posts)
+
+            tmpls = self.ssg.load_templates(self.ssg.tmplpath)
+            self.assertTrue(tmpls)
+
+            pages = self.ssg.render(posts)
+            self.assertTrue(pages)
+
+            self.ssg.publish(pages, tmpls)
+            self.assertTrue(Path(self.ssg.ofpath).exists)
+            
+            # private test case tearDown: remove `index.html`
+            try:
+                rmtree(self.ssg.ofpath)
+            except OSError as e:
+                raise e
+
+    def test_send_static_assets(self):
+        pass
+
+    def test_clean_generated_pages(self):
         pass

@@ -105,7 +105,7 @@ class Postocol(metaclass=ABCMeta):
 
     @abstractmethod
     def render(self, posts):
-        """Render the posts (Jinja2 templates)"""
+        """Render the posts (Jinja2 templates), shall be implemented"""
         pass
 
     def publish(self, pages, tmpls):

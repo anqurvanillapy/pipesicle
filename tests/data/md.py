@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-markdown_text0 = """\
+markdown_text = {
+    'fname': ['foo.md', 'bar.md'],
+    'content': ["""\
 title:      Hello
 type:       post
 states:     unfinished
@@ -12,11 +14,10 @@ date:       January 1, 2001
 > bar
 
 barz
-"""
-
-markdown_text1 = """\
+""",
+"""\
 title:      Aloha
 type:       index
 
 # Hello, world!
-"""
+"""]}
