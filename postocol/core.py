@@ -11,7 +11,7 @@
         + `tmplpath`: Template path for Jinja2 Environment
         + `ifpath`: input path (output path is `site` by default)
     - Notice:
-        + The page dict should have 3 keys: `html`, `meta`, and `fname`
+        + The page dict should have 3 keys: `content`, `meta`, and `fname`
 """
 
 
@@ -27,7 +27,7 @@ class Postocol(metaclass=ABCMeta):
     _ofpath = 'site'
     _pymd_exts = []
     md_exts =  {'.markdown', '.mdown', '.mkdn', '.md', '.mkd', '.mdwn', '.mdtxt',
-        '.mdtext', '.text', '.txt'}
+                '.mdtext', '.text', '.txt'}
     tmpl_types = {'layout', 'index', 'post', 'states', 'properties', 'misc'}
 
     @property
@@ -82,7 +82,7 @@ class Postocol(metaclass=ABCMeta):
             try:
                 tmpls[t] = env.get_template('{}.html'.format(t))
             except exceptions.TemplateNotFound as e:
-                print('warning: no template named {}.html'.format(t))
+                print('warning: No template named {}.html'.format(t))
 
         return tmpls
 
@@ -91,8 +91,9 @@ class Postocol(metaclass=ABCMeta):
         if path.exists(fpath):
             posts = []
 
-            for f in [fpath] if path.isfile(fpath) else \
-                list(map(lambda x: path.join(fpath, x), listdir(fpath))):
+            for f in [fpath] if path.isfile(fpath) \
+                             else list(map(lambda x: path.join(fpath, x),
+                                           listdir(fpath))):
                 if path.splitext(f)[1] in self.md_exts:
                     posts.append(f)
 
@@ -109,19 +110,21 @@ class Postocol(metaclass=ABCMeta):
 
     def publish(self, pages, tmpls):
         """Publish rendered posts"""
-        is_single = len(pages) == 1
+        try:
+            is_single = len(pages) == 1 and 'index' in pages[0]['meta']['type']
+        except KeyError as e:
+            raise e
+
+        if not is_single: makedirs(self.ofpath, exist_ok=True)
         dest = lambda x: self.ofpath if is_single else path.join(self.ofpath, x)
 
-        if not is_single:
-            makedirs(self.ofpath, exist_ok=True)
-
         for p in pages:
-            if all(k in p for k in {'html', 'meta', 'fname'}):
+            if all(k in p for k in {'content', 'meta', 'fname'}):
                 with codecs.open(dest(p['fname']), 'w', encoding='utf-8',
-                    errors='xmlcharrefreplace') as f:
+                                 errors='xmlcharrefreplace') as f:
                     f.write(tmpls.get(*p['meta']['type']).render(**p))
             else:
-                raise TypeError('Invalid page dict')
+                raise KeyError('Invalid page dict to publish')
 
     def send_static(self, fpath):
         """Send static assets to destination directory"""
