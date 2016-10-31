@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block main %}
+<h1>Categories</h1>
+{% for prop in content.keys() %}
+<h2 id="#{{ prop }}">{{ prop }}</h2>
+<ul>
+  {% for p in content[prop] %}
+  <li><a href="{{ p['fname'] }}">{{ p['title'] }}</a></li>
+  {% endfor %}
+</ul>
+{% endfor %}
+{% endblock %}

@@ -16,7 +16,7 @@
 
 
 import errno, codecs
-from shutil import copytree
+from shutil import copytree, rmtree
 from os import makedirs, remove, path, listdir, strerror
 from abc import abstractmethod, ABCMeta
 
@@ -25,20 +25,14 @@ from jinja2 import Environment, FileSystemLoader, exceptions
 
 class Postocol(metaclass=ABCMeta):
     """SSG base class"""
+    ifpath = 'content'
     ofpath = 'site'
+    tmplpath = 'templates'
     staticpath = 'static'
-    _pymd_exts = []
-    md_exts =  {'.markdown', '.mdown', '.mkdn', '.md', '.mkd', '.mdwn', '.mdtxt',
+    _pymd_exts = ['markdown.extensions.meta']
+    _md_exts =  {'.markdown', '.mdown', '.mkdn', '.md', '.mkd', '.mdwn', '.mdtxt',
                 '.mdtext', '.text', '.txt'}
-    tmpl_types = {'layout', 'index', 'post', 'states', 'properties', 'misc'}
-
-    @property
-    @abstractmethod
-    def tmplpath(self): pass
-
-    @property
-    @abstractmethod
-    def ifpath(self): pass
+    _tmpl_types = {'layout', 'index', 'post', 'states', 'properties', 'misc'}
 
     @property
     def pymd_exts(self):
@@ -72,7 +66,7 @@ class Postocol(metaclass=ABCMeta):
         env = Environment(loader=FileSystemLoader(fpath))
         tmpls = {}
 
-        for t in self.tmpl_types:
+        for t in self._tmpl_types:
             try:
                 tmpls[t] = env.get_template('{}.html'.format(t))
             except exceptions.TemplateNotFound as e:
@@ -88,7 +82,7 @@ class Postocol(metaclass=ABCMeta):
             for f in [fpath] if path.isfile(fpath) \
                              else list(map(lambda x: path.join(fpath, x),
                                            listdir(fpath))):
-                if path.splitext(f)[1] in self.md_exts:
+                if path.splitext(f)[1] in self._md_exts:
                     posts.append(f)
 
             if not posts:
@@ -101,6 +95,18 @@ class Postocol(metaclass=ABCMeta):
     def render(self, posts):
         """Render the posts (Jinja2 templates), shall be implemented"""
         pass
+
+    def create_page_dict(self, content, tmpl_type):
+        """\
+            Create page dictionary manually, especially for `index`, `states` or
+            `properties`.
+        """
+        if tmpl_type in self._tmpl_types:
+            return {'content': content,
+                    'meta': {'type': [tmpl_type]},
+                    'fname': '{}.html'.format(tmpl_type)}
+        else:
+            raise TypeError('Invalid manual page dict')
 
     def publish(self, pages, tmpls):
         """Publish rendered posts"""
@@ -123,6 +129,7 @@ class Postocol(metaclass=ABCMeta):
     def send_static(self, fpath):
         """Send static assets to destination directory"""
         try:
+            if path.exists(fpath): rmtree(fpath)
             copytree(self.staticpath, fpath)
         except Exception as e:
             raise e

@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block main %}
+<h1>States</h1>
+{% for state in content.keys() %}
+<h2 id="#{{ state }}">{{ state }}</h2>
+<ul>
+  {% for s in content[state] %}
+  <li><a href="{{ s['fname'] }}">{{ s['title'] }}</a></li>
+  {% endfor %}
+</ul>
+{% endfor %}
+{% endblock %}

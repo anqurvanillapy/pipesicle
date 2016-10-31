@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% block main %}
+<h1>Homepage</h1>
+<ul>
+  {% for item in content %}
+  <li><a href="{{ item['fname'] }}">{{ item['title'] }}</a></li>
+  {% endfor %}
+</ul>
+{% endblock %}

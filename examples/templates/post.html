@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block main %}
+<h1>{{ meta['title'][0] }}</h1>
+<p>
+  Categories:
+  {% for p in meta['properties'] %}
+  <a href="properties.html#{{ p }}">{{ p }}</a>
+  {% endfor %}
+  States:
+  {% for s in meta['states'] %}
+  <a href="states.html#{{ s }}">{{ s }}</a>
+  {% endfor %}
+</p>
+<article>
+  {{ content }}
+</article>
+{% endblock %}

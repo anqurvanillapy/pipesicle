@@ -20,11 +20,13 @@ class TestSSGBasic(unittest.TestCase):
         cls.ssg = MockSSG()
 
     def test_add_python_markdown_extensions(self):
-        pymd_exts = ['extra', 'meta']
+        pymd_exts = ['extra', 'tables']
         self.ssg.pymd_exts = pymd_exts
+        # 'meta' is the default extension
         self.assertEqual(self.ssg.pymd_exts,
-                         ['markdown.extensions.extra',
-                          'markdown.extensions.meta'])
+                         ['markdown.extensions.meta',
+                          'markdown.extensions.extra',
+                          'markdown.extensions.tables'])
 
     def test_filepath_doesnt_exists(self):
         with self.assertRaises(OSError):
@@ -96,6 +98,14 @@ class TestSSGBasic(unittest.TestCase):
                 remove(output_html_file)
             except OSError as e:
                 raise e
+
+    def test_create_invalid_manual_page_dict(self):
+        with self.assertRaises(TypeError):
+            self.ssg.create_page_dict([], 'foo', 'bar')
+
+    def test_create_manual_page_dict(self):
+        page = self.ssg.create_page_dict([], 'index', 'bar')
+        self.assertTrue('index' in page['meta']['type'])
 
     def test_publish_all(self):
         with tmpdir() as tmp:
