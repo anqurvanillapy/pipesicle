@@ -2,17 +2,155 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Postocol</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" type="text/css" href="static/style.css">
+
+  <title>Postocol</title>
 </head>
 <body>
   <header>
     <h1>Postocol</h1>
   </header>
+  <hr>
   <main>
-    <article><h1>Hello, Postocol!</h1>
-<p>This is the homepage</p></article>
+    <article><p><strong>Posting Protocol</strong>, SSG (Static site generator) abstract class for extensible
+use.</p>
+<blockquote>
+<p>Fork me on <a href="https://github.com/anqurvanillapy/postocol">GitHub</a>!</p>
+</blockquote>
+<h2>Implementation Workflow</h2>
+<ul>
+<li>There are <strong>3</strong> document types that Postocol mainly serves, which are:<ul>
+<li>Single page (e.g. slideshow)</li>
+<li>Blog</li>
+<li>Wiki</li>
+</ul>
+</li>
+<li>Therefore, Postocol will by default trace <strong>6</strong> types of templates as follows:<ul>
+<li><code>index</code>, for blog or wiki, or even the slideshow (because it can be stored
+in one static HTML file, hence assuming that it is an index page)</li>
+<li><code>post</code>, for blog or wiki, e.g. an article</li>
+<li><code>states</code>, mainly for wiki, a list containing the current states of a post,
+e.g. <em>unfinished</em>, <em>not proofread</em>, <em>stub</em>, etc., similar to
+<a href="https://en.wikipedia.org/wiki/Wikipedia:Tagging_pages_for_problems">Wikipedia:Tagging pages for problems</a></li>
+<li><code>properties</code>, for wiki or blog, a list of the properties of a post, e.g.
+<em>howto</em>, <em>daily</em>, <em>compsci</em>, <em>PoC</em>, etc., similarly the categories or tags</li>
+<li><code>misc</code>, something you want to provide independently, instead of listing in
+<code>index</code>, <code>states</code> or <code>properties</code>, e.g. <em>about</em>, <em>contact</em>, <em>resume</em>, etc.</li>
+<li><code>layout</code>, serving something above</li>
+</ul>
+</li>
+<li><strong>Additionally</strong>, <code>index</code>, <code>states</code> and <code>properties</code> could be automatically
+generated from self-implemented <code>Postocol.render()</code> method.</li>
+</ul>
+<h3>For single-page (slideshow) generator</h3>
+<p>There is no need to <code>clean()</code> anything and <code>send_static()</code> for a single-page
+generator, so the workflow is simple. For instance, a slideshow generator might
+act like this.</p>
+<pre><code>                    load_templates()     publish()
+                          |                  |
+                          v                  v
+(slides.md) --+------- template ---+--&gt; (index.html)
+              |                    |
+              +-- post ---&gt; page --+
+                   ^          ^
+                   |          |
+            load_posts()   render()
+</code></pre>
+<h3>For blog/wiki generator</h3>
+<p>Wiki uses the whole functionality to update all the posts, whereas the workflow
+of a blog generator is similar:</p>
+<pre><code>(foo.md) --+
+(bar.md) --+  clean(site/)  load_templates()  publish()  send_static()
+           |         |            |              |             |
+           v         v            v              v             v
+       (content/) ---+----- templates ---+--&gt; (site/) --+-&gt; (site/static/)
+                     |                   |              +-- (index.html)
+                     +-- posts -&gt; pages -+              +-- (states.html)
+                          ^         ^                   +-- (properties.html)
+                          |         |                   +-- (foo.html)
+                   load_posts()  render()               +-- (bar.html)
+</code></pre>
+<h2>Examples</h2>
+<h3>Starter</h3>
+<p>The project site hosted on
+<a href="https://github.com/anqurvanillapy/postocol/tree/gh-pages">gh-pages branch</a>
+contains a minimalist webpage generator that ignores two unnecessary methods
+<code>clean()</code> and <code>send_static()</code>, which can be your first sight under the hood.</p>
+<blockquote>
+<p>Off we go!</p>
+</blockquote>
+<p>First, import everything we need to implement our own <code>render()</code> method, and
+some built-in tools for coping with encoding/decoding and path manipulation.
+In the meantime, create a class inheriting <code>Postocol</code> with some key constants.</p>
+<pre><code class="python">from postocol import Postocol
+
+import codecs
+from os.path import basename, splitext
+
+from markdown import Markdown
+from bs4 import BeautifulSoup
+
+
+class Starter(Postocol):
+    ifpath = 'preface.md'
+    ofpath = 'index.html'
+</code></pre>
+<p>Second, we add a <code>run()</code> method for the control flow, which goes like</p>
+<blockquote>
+<p>Load templates from <code>templates</code> folder, and load <code>preface.md</code> to a list called
+<code>posts</code>. Render the Markdown file and bring the <code>pages</code> out. Finally, publish it
+to the file <code>index.html</code>, which is combined with our <code>templates</code> and <code>pages</code>.</p>
+</blockquote>
+<pre><code class="python">def run(self):
+    self.tmpls = self.load_templates()
+    self.posts = self.load_posts()
+    self.pages = self.render(self.posts)
+    self.publish(self.pages, self.tmpls)
+</code></pre>
+<p>Eventually, here comes the boss! Now implement the abstract method <code>render()</code> to
+translate our Markdown page into HTML, collecting <strong>3</strong> kinds of the page
+information: <code>content</code> (the generated HTML content), <code>meta</code> (title, type, date,
+etc., right at the beginning of a Markdown post) and <code>fname</code> (filename). Notice
+that <code>BeautifulSoup</code> brings the HTML with nodes like
+<code>&lt;html&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;</code>, which are not wanted in our content because later
+it will be rendered into the templates. Since <code>lxml</code> will help us conveniently
+eliminate those tags, we use it as the parser.</p>
+<pre><code class="python">def render(self, posts):
+    pages = []
+    # Tiny function to add `.html` extension
+    chfn = lambda x: '{}.html'.format(splitext(basename(x))[0])
+
+    for p in posts:
+        with codecs.open(p, 'r', encoding='utf-8') as f:
+            # Create an instance with loading the extensions, because we need
+            # `meta` of the post, which won't be parsed by default.
+            md = Markdown(extensions=self.pymd_exts)
+            html = BeautifulSoup(md.convert(f.read()), 'lxml')
+            # Remove `html` and `body` tags
+            html.html.hidden = True
+            html.body.hidden = True
+            # Attention, `meta` is quite like a `defaultdict(list)` that all
+            # metadata are stored in the list as `meta`'s value, even its length
+            # is just 1. E.g. {'title': ['Foo'], 'date': ['Nov 1, 2016']}.
+            meta = md.Meta
+            pages.append({'content': html,
+                          'meta': meta,
+                          'fname': chfn(p)})
+
+    return pages
+</code></pre>
+<p>What is inside the <code>preface.md</code> and the index template are not gonna be
+displayed right here. Check out the
+<a href="https://github.com/anqurvanillapy/postocol/tree/gh-pages">branch</a> and run it to
+see what kinds of magic will just happen!</p>
+<h3>Main Course</h3>
+<p>See <a href="https://github.com/anqurvanillapy/postocol/tree/master/examples">examples</a>
+directory that offers a fully implemented <strong>wiki</strong> generator demo, which may
+help you fast-prototyping your own generator.</p></article>
   </main>
+  <hr>
   <footer>
     <p>Published by <a href="https://github.com/anqurvanillapy/postocol">Postocol</a>, indeed.</p>
   </footer>

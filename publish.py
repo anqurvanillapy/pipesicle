@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
     Project Site
@@ -10,8 +11,7 @@
 from postocol import Postocol
 
 import codecs
-from os.path import join, basename, splitext
-from collections import defaultdict
+from os.path import basename, splitext
 
 from markdown import Markdown
 from bs4 import BeautifulSoup
@@ -19,12 +19,15 @@ from bs4 import BeautifulSoup
 
 class ProjectSite(Postocol):
     """ProjectSite Example"""
-    ifpath = 'index.md'
+    ifpath = 'preface.md'
     ofpath = 'index.html'
 
+    def __init__(self):
+        self.pymd_exts = ['fenced_code']
+
     def run(self):
-        self.tmpls = self.load_templates(self.tmplpath)
-        self.posts = self.load_posts(self.ifpath)
+        self.tmpls = self.load_templates()
+        self.posts = self.load_posts()
         self.pages = self.render(self.posts)
         self.publish(self.pages, self.tmpls)
 
