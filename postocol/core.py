@@ -129,10 +129,10 @@ class Postocol(metaclass=ABCMeta):
             else:
                 raise KeyError('Invalid page dict to publish')
 
-    def send_static(self, fpath):
+    def send_static(self, dest):
         """Send static assets to destination directory"""
         try:
-            if path.exists(fpath): rmtree(fpath)
-            copytree(self.staticpath, fpath)
+            if path.exists(dest): rmtree(dest)
+            copytree(self.staticpath, dest)
         except Exception as e:
             raise e
