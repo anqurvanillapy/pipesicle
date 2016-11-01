@@ -1,0 +1,11 @@
+body {
+    margin: 0 auto !important;
+    text-align: center !important;
+    max-width: 80%;
+}
+
+@media screen and (min-width: 640px) {
+  body {
+    max-width: 60%;
+  }
+}
