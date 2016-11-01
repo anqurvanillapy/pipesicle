@@ -25,6 +25,64 @@ $ cd postocol
 $ python3 setup.py install # or use `-r` to specify requirements
 ```
 
+Implementation Workflow
+-----------------------
+
+- There are **3** document types that Postocol mainly serves, which are:
+    + Single page (e.g. slideshow)
+    + Blog
+    + Wiki
+- Therefore, Postocol will by default trace **6** types of templates as follows:
+    + `index`, for blog or wiki, or even the slideshow (because it can be stored
+    in one static HTML file, hence assuming that it is an index page)
+    + `post`, for blog or wiki, e.g. an article
+    + `states`, mainly for wiki, a list containing the current states of a post,
+    e.g. *unfinished*, *not proofread*, *stub*, etc., similar to
+    [Wikipedia:Tags](https://en.wikipedia.org/wiki/Wikipedia:Tags)
+    + `properties`, for wiki or blog, a list of the properties of a post, e.g.
+    *howto*, *daily*, *compsci*, *PoC*, etc., similarly the categories or tags
+    + `misc`, something you want to provide independently, instead of listing in
+    `index`, `states` or `properties`, e.g. *about*, *contact*, *resume*, etc.
+    + `layout`, serving something above
+- **Additionally**, `index`, `states` and `properties` could be automatically
+generated from self-implemented `Postocol.render()` method.
+
+### For single-page (slideshow) generator
+
+There is no need to `clean()` anything and `send_static()` for a single-page
+generator, so the workflow is simple. For instance, a slideshow generator might
+act like this.
+
+```
+                    load_templates()     publish()
+                          |                  |
+                          v                  v
+(slides.md) --+------- template ---+--> (index.html)
+              |                    |
+              +-- post ---> page --+
+                   ^          ^
+                   |          |
+            load_posts()   render()
+```
+
+### For blog/wiki generator
+
+Wiki uses the whole functionality to update all the posts, whereas the workflow
+of a blog generator is similar:
+
+```
+(foo.md) --+
+(bar.md) --+  clean(site/)  load_templates()  publish()  send_static()
+           |         |            |              |             |
+           v         v            v              v             v
+       (content/) ---+----- templates ---+--> (site/) --+-> (site/static/)
+                     |                   |              +-- (index.html)
+                     +-- posts -> pages -+              +-- (states.html)
+                          ^         ^                   +-- (properties.html)
+                          |         |                   +-- (foo.html)
+                   load_posts()  render()               +-- (bar.html)
+```
+
 API Reference
 -------------
 
@@ -169,64 +227,6 @@ And this is valid for `publish()` to render the templates. For further example
 about how to autogenerate an `index` (or `states`, etc.), please check out the
 [examples](https://github.com/anqurvanillapy/postocol/tree/master/examples)
 directory, where there is a wiki generator.
-
-Implementation Workflow
------------------------
-
-- There are **3** document types that Postocol mainly serves, which are:
-    + Single page (e.g. slideshow)
-    + Blog
-    + Wiki
-- Therefore, Postocol will by default trace **6** types of templates as follows:
-    + `index`, for blog or wiki, or even the slideshow (because it can be stored
-    in one static HTML file, hence assuming that it is an index page)
-    + `post`, for blog or wiki, e.g. an article
-    + `states`, mainly for wiki, a list containing the current states of a post,
-    e.g. *unfinished*, *not proofread*, *stub*, etc., similar to
-    [Wikipedia:Tags](https://en.wikipedia.org/wiki/Wikipedia:Tags)
-    + `properties`, for wiki or blog, a list of the properties of a post, e.g.
-    *howto*, *daily*, *compsci*, *PoC*, etc., similarly the categories or tags
-    + `misc`, something you want to provide independently, instead of listing in
-    `index`, `states` or `properties`, e.g. *about*, *contact*, *resume*, etc.
-    + `layout`, serving something above
-- **Additionally**, `index`, `states` and `properties` could be automatically
-generated from self-implemented `Postocol.render()` method.
-
-### For single-page (slideshow) generator
-
-There is no need to `clean()` anything and `send_static()` for a single-page
-generator, so the workflow is simple. For instance, a slideshow generator might
-act like this.
-
-```
-                    load_templates()     publish()
-                          |                  |
-                          v                  v
-(slides.md) --+------- template ---+--> (index.html)
-              |                    |
-              +-- post ---> page --+
-                   ^          ^
-                   |          |
-            load_posts()   render()
-```
-
-### For blog/wiki generator
-
-Wiki uses the whole functionality to update all the posts, whereas the workflow
-of a blog generator is similar:
-
-```
-(foo.md) --+
-(bar.md) --+  clean(site/)  load_templates()  publish()  send_static()
-           |         |            |              |             |
-           v         v            v              v             v
-       (content/) ---+----- templates ---+--> (site/) --+-> (site/static/)
-                     |                   |              +-> (index.html)
-                     +-- posts -> pages -+              +-> (states.html)
-                          ^         ^                   +-> (properties.html)
-                          |         |                   +-- (foo.html)
-                   load_posts()  render()               +-- (bar.html)
-```
 
 Examples
 --------
