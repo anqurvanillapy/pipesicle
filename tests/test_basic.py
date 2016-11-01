@@ -39,12 +39,12 @@ class TestSSGBasic(unittest.TestCase):
     def test_load_invalid_markdown_file(self):
         with tmpfile(suffix='.mdx') as tmp:
             self.ssg.ifpath = tmp.name
-            self.assertFalse(self.ssg.load_posts(self.ssg.ifpath))
+            self.assertFalse(self.ssg.load_posts())
 
     def test_load_valid_markdown_file(self):
         with tmpfile(suffix='.md') as tmp:
             self.ssg.ifpath = tmp.name
-            self.assertTrue(self.ssg.load_posts(self.ssg.ifpath))
+            self.assertTrue(self.ssg.load_posts())
 
     def test_filepath_nothing_to_publish(self):
         with tmpdir() as tmp:
@@ -52,7 +52,8 @@ class TestSSGBasic(unittest.TestCase):
             invalid_md = tmp_path / 'foo.mdx'
             invalid_md.write_text(md.markdown_text['content'][0])
             self.ssg.ifpath = str(tmp_path)
-            self.assertFalse(self.ssg.load_posts(self.ssg.ifpath))
+            print(self.ssg.ifpath)
+            self.assertFalse(self.ssg.load_posts())
 
     def test_generated_page_content(self):
         with tmpdir() as tmp:
@@ -60,7 +61,7 @@ class TestSSGBasic(unittest.TestCase):
             valid_md = tmp_path / md.markdown_text['fname'][0]
             valid_md.write_text(md.markdown_text['content'][0])
             self.ssg.ifpath = str(tmp_path)
-            posts = self.ssg.load_posts(self.ssg.ifpath)
+            posts = self.ssg.load_posts()
             self.assertTrue(posts)
             
             pages = self.ssg.render(posts)     
@@ -80,11 +81,12 @@ class TestSSGBasic(unittest.TestCase):
             valid_md = tmp_path / md.markdown_text['fname'][0]
             valid_md.write_text(md.markdown_text['content'][1])
 
+            self.ssg.ifpath = str(valid_md)
             self.ssg.ofpath = output_html_file
-            post = self.ssg.load_posts(str(valid_md))
+            post = self.ssg.load_posts()
             self.assertTrue(post)
 
-            tmpl = self.ssg.load_templates(self.ssg.tmplpath)
+            tmpl = self.ssg.load_templates()
             self.assertTrue(tmpl)
 
             page = self.ssg.render(post)
@@ -101,10 +103,10 @@ class TestSSGBasic(unittest.TestCase):
 
     def test_create_invalid_manual_page_dict(self):
         with self.assertRaises(TypeError):
-            self.ssg.create_page_dict([], 'foo', 'bar')
+            self.ssg.create_page_dict([], 'foo')
 
     def test_create_manual_page_dict(self):
-        page = self.ssg.create_page_dict([], 'index', 'bar')
+        page = self.ssg.create_page_dict([], 'index')
         self.assertTrue('index' in page['meta']['type'])
 
     def test_publish_all(self):
@@ -117,10 +119,11 @@ class TestSSGBasic(unittest.TestCase):
             for i in range(len(post_text)):
                 touch_md(fnames[i]).write_text(post_text[i])
 
-            posts = self.ssg.load_posts(str(tmp_path))
+            self.ssg.ifpath = str(tmp_path)
+            posts = self.ssg.load_posts()
             self.assertTrue(posts)
 
-            tmpls = self.ssg.load_templates(self.ssg.tmplpath)
+            tmpls = self.ssg.load_templates()
             self.assertTrue(tmpls)
 
             pages = self.ssg.render(posts)

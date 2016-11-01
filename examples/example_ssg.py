@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
     Example SSG
@@ -23,8 +24,8 @@ class SSG(Postocol):
     def run(self):
         """Control flow goes here"""
         self.clean()
-        self.tmpls = self.load_templates(self.tmplpath)
-        self.posts = self.load_posts(self.ifpath)
+        self.tmpls = self.load_templates()
+        self.posts = self.load_posts()
         self.pages = self.render(self.posts)
         self.publish(self.pages, self.tmpls)
         self.send_static(join(self.ofpath, self.staticpath))

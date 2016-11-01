@@ -7,9 +7,6 @@
 
     - Abstract methods:
         + `render()`: Render pages
-    - Abstract properties:
-        + `tmplpath`: Template path for Jinja2 Environment
-        + `ifpath`: input path (output path is `site` by default)
     - Notice:
         + Page dict should contain at least 3 keys: `content`, `meta`, and `fname`
 """
@@ -54,7 +51,7 @@ class Postocol(metaclass=ABCMeta):
                         if e.errno != errno.ENOENT: # silent removal
                             print('warning: Unable to delete {}'.format(f))
 
-    def load_templates(self, fpath):
+    def load_templates(self, fpath=None):
         """\
             - Load templates using Jinja2 Environment
                 + `fpath` should be directory
@@ -63,6 +60,9 @@ class Postocol(metaclass=ABCMeta):
             - Template names should be one of the following
                 + layout, index, post, states, properties, misc
         """
+        if fpath == None:
+            fpath = self.tmplpath
+
         env = Environment(loader=FileSystemLoader(fpath))
         tmpls = {}
 
@@ -74,8 +74,11 @@ class Postocol(metaclass=ABCMeta):
 
         return tmpls
 
-    def load_posts(self, fpath):
+    def load_posts(self, fpath=None):
         """Load valid posts from source directory"""
+        if fpath == None:
+            fpath = self.ifpath
+
         if path.exists(fpath):
             posts = []
 
