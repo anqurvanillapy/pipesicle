@@ -90,9 +90,9 @@ and it will not remove anything if `ofpath` is a file.
 |:-:|:-:|
 |`str`, `'self.tmplpath'` if not given|`dict`|
 
-Load all [valid templates](#workflow) from `fpath`, and return a dict with the
-valid template types as keys, and the Jinja2 template paths as values.
-**Attention, the template file extension should only be `.html`.**
+Load all [valid templates](#implementation-workflow) from `fpath`, and return a
+dict with the valid template types as keys, and the Jinja2 template paths as
+values. **Attention, the template file extension should only be `.html`.**
 
 ### `Postocol.load_posts(fpath=None)`
 
