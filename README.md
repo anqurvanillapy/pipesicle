@@ -38,7 +38,7 @@ Implementation Workflow
     + `post`, for blog or wiki, e.g. an article
     + `states`, mainly for wiki, a list containing the current states of a post,
     e.g. *unfinished*, *not proofread*, *stub*, etc., similar to
-    [Wikipedia:Tags](https://en.wikipedia.org/wiki/Wikipedia:Tags)
+    [Wikipedia:Tagging_pages_for_problems](https://en.wikipedia.org/wiki/Wikipedia:Tagging_pages_for_problems)
     + `properties`, for wiki or blog, a list of the properties of a post, e.g.
     *howto*, *daily*, *compsci*, *PoC*, etc., similarly the categories or tags
     + `misc`, something you want to provide independently, instead of listing in

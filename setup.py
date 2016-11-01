@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from postocol import __version__
 from setuptools import setup
-
-
-__version__ = '0.1.0'
 
 
 setup(
