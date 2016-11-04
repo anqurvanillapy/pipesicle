@@ -1,7 +1,7 @@
 title:  Postocol
 type:   index
 
-**Posting Protocol**, SSG (Static site generator) abstract class for extensible
+**Posting Protocol**, SSG (static site generator) abstract class for extensible
 use.
 
 > Fork me on [GitHub](https://github.com/anqurvanillapy/postocol)!
