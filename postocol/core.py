@@ -18,6 +18,8 @@ from os import makedirs, remove, path, listdir, strerror
 from abc import abstractmethod, ABCMeta
 
 from jinja2 import Environment, FileSystemLoader, exceptions
+from markdown import Markdown
+from bs4 import BeautifulSoup
 
 
 class Postocol(metaclass=ABCMeta):
@@ -86,7 +88,19 @@ class Postocol(metaclass=ABCMeta):
                              else list(map(lambda x: path.join(fpath, x),
                                            listdir(fpath))):
                 if path.splitext(f)[1] in self._md_exts:
-                    posts.append(f)
+                    with codecs.open(f, 'r', encoding='utf-8') as fh:
+                        md = Markdown(extensions=self.pymd_exts)
+                        html = BeautifulSoup(md.convert(fh.read()), 'lxml')
+
+                        if html.html:
+                            # Remove html and body tags
+                            html.html.hidden = True
+                            html.body.hidden = True
+                            meta = md.Meta
+
+                            if meta['type']:
+                                # Let KeyError propagate for reminding
+                                posts.append((html, meta, f))
 
             if not posts:
                 print('warning: Nothing to publish')
@@ -98,18 +112,6 @@ class Postocol(metaclass=ABCMeta):
     def render(self, posts):
         """Render the posts (Jinja2 templates), shall be implemented"""
         pass
-
-    def create_page_dict(self, content, tmpl_type):
-        """\
-            Create page dictionary manually, especially for `index`, `states` or
-            `properties`.
-        """
-        if tmpl_type in self._tmpl_types:
-            return {'content': content,
-                    'meta': {'type': [tmpl_type]},
-                    'fname': '{}.html'.format(tmpl_type)}
-        else:
-            raise TypeError('Invalid manual page dict')
 
     def publish(self, pages, tmpls):
         """Publish rendered posts"""
@@ -130,9 +132,24 @@ class Postocol(metaclass=ABCMeta):
                 raise KeyError('Invalid page dict to publish')
 
     def send_static(self, dest):
-        """Send static assets to destination directory"""
+        """Send static assets directory to dest directory"""
         try:
             if path.exists(dest): rmtree(dest)
             copytree(self.staticpath, dest)
         except Exception as e:
             raise e
+
+    def create_page_dict(self, content, tmpl_type):
+        """\
+            Create page dictionary manually, especially for `index`, `states` or
+            `properties`.
+        """
+        if tmpl_type in self._tmpl_types:
+            return {'content': content,
+                    'meta': {'type': [tmpl_type]},
+                    'fname': '{}.html'.format(tmpl_type)}
+        else:
+            raise TypeError('Invalid manual page dict')
+
+    def send_codehightlite_style(self, theme, dest):
+        pass

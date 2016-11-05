@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 markdown_text = {
     'fname': ['foo.md', 'bar.md'],
     'content': ["""\
@@ -13,7 +14,7 @@ date:       January 1, 2001
 
 > bar
 
-barz
+baz
 """,
 """\
 title:      Aloha
@@ -21,3 +22,12 @@ type:       index
 
 # Hello, world!
 """]}
+
+
+invalid_markdown_text = """\
+title:      Qux
+
+# Qux
+
+This post got no types, invalid to be loaded.
+"""

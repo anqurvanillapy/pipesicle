@@ -1,8 +1,8 @@
 postocol
 ========
 
-**Posting Protocol**, SSG (Static site generator) abstract class for extensible
-use. Only supported Python 3.5+, for the compatibility of 3.4, 2.7 or other
+**Posting Protocol**, SSG (static site generator) abstract class for extensible
+use. Only supports Python 3.5+, for the compatibility of 3.4, 2.7 or other
 versions not tested and guaranteed.
 
 Requirements
@@ -38,7 +38,7 @@ Implementation Workflow
     + `post`, for blog or wiki, e.g. an article
     + `states`, mainly for wiki, a list containing the current states of a post,
     e.g. *unfinished*, *not proofread*, *stub*, etc., similar to
-    [Wikipedia:Tagging_pages_for_problems](https://en.wikipedia.org/wiki/Wikipedia:Tagging_pages_for_problems)
+    [Wikipedia:Tagging pages for problems](https://en.wikipedia.org/wiki/Wikipedia:Tagging_pages_for_problems)
     + `properties`, for wiki or blog, a list of the properties of a post, e.g.
     *howto*, *daily*, *compsci*, *PoC*, etc., similarly the categories or tags
     + `misc`, something you want to provide independently, instead of listing in
@@ -146,7 +146,7 @@ and it will not remove anything if `ofpath` is a file.
 
 |`fpath` Type|Return Type|
 |:-:|:-:|
-|`str`, `'self.tmplpath'` if not given|`dict`|
+|`str`; `self.tmplpath` by default|`dict`|
 
 Load all [valid templates](#implementation-workflow) from `fpath`, and return a
 dict with the valid template types as keys, and the Jinja2 template paths as
@@ -156,7 +156,7 @@ values. **Attention, the template file extension should only be `.html`.**
 
 |`fpath` Type|Return Type|
 |:-:|:-:|
-|`str`, `'self.ifpath'` if not given|`list`|
+|`str`; `self.ifpath` by default|`list`|
 
 Load all valid Markdown posts from `fpath`, and return a list of their paths.
 These extensions are only readable for this method: `.markdown`, `.mdown`,
@@ -308,8 +308,8 @@ def render(self, posts):
     return pages
 ```
 
-What is inside the `preface.md` and the index template are not gonna be
-displayed right here. Check out the
+What is inside the `preface.md` and the index template will not be displayed
+right here. Check out the
 [branch](https://github.com/anqurvanillapy/postocol/tree/gh-pages) and run it to
 see what kinds of magic will just happen!
 

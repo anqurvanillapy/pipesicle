@@ -41,21 +41,23 @@ class TestSSGBasic(unittest.TestCase):
             self.ssg.ifpath = tmp.name
             self.assertFalse(self.ssg.load_posts())
 
-    def test_load_valid_markdown_file(self):
-        with tmpfile(suffix='.md') as tmp:
-            self.ssg.ifpath = tmp.name
-            self.assertTrue(self.ssg.load_posts())
-
     def test_filepath_nothing_to_publish(self):
         with tmpdir() as tmp:
             tmp_path = Path(tmp)
             invalid_md = tmp_path / 'foo.mdx'
             invalid_md.write_text(md.markdown_text['content'][0])
             self.ssg.ifpath = str(tmp_path)
-            print(self.ssg.ifpath)
             self.assertFalse(self.ssg.load_posts())
 
-    def test_generated_page_content(self):
+    def test_load_no_type_meta_post(self):
+        with self.assertRaises(KeyError):
+            with tmpfile(suffix='.md', mode='w+t') as tmp:
+                tmp.write(md.invalid_markdown_text)
+                tmp.seek(0)
+                self.ssg.ifpath = tmp.name
+                self.ssg.load_posts()
+
+    def test_render_post(self):
         with tmpdir() as tmp:
             tmp_path = Path(tmp)
             valid_md = tmp_path / md.markdown_text['fname'][0]
@@ -100,14 +102,6 @@ class TestSSGBasic(unittest.TestCase):
                 remove(output_html_file)
             except OSError as e:
                 raise e
-
-    def test_create_invalid_manual_page_dict(self):
-        with self.assertRaises(TypeError):
-            self.ssg.create_page_dict([], 'foo')
-
-    def test_create_manual_page_dict(self):
-        page = self.ssg.create_page_dict([], 'index')
-        self.assertTrue('index' in page['meta']['type'])
 
     def test_publish_all(self):
         with tmpdir() as tmp:
@@ -163,3 +157,14 @@ class TestSSGBasic(unittest.TestCase):
             self.ssg.clean()
             self.assertFalse(file_to_clean.exists())
             self.assertTrue(file_not_to_clean.exists())
+
+    def test_create_invalid_manual_page_dict(self):
+        with self.assertRaises(TypeError):
+            self.ssg.create_page_dict([], 'foo')
+
+    def test_create_manual_page_dict(self):
+        page = self.ssg.create_page_dict([], 'index')
+        self.assertTrue('index' in page['meta']['type'])
+
+    def test_send_codehighlite_style(self):
+        pass
