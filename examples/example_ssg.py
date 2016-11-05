@@ -35,9 +35,8 @@ class SSG(Postocol):
         pages = []
         chfn = lambda x: '{}.html'.format(splitext(basename(x))[0])
 
-        autogen_pages = ['index', 'states', 'properties']
-        states = defaultdict(list)
-        props = defaultdict(list)
+        pgroup = ['states', 'properties']
+        pgdict = {pg:defaultdict(list) for pg in pgroup}
         index = []
 
         for p in posts:
@@ -50,20 +49,18 @@ class SSG(Postocol):
                 pages.append({'content': html,
                               'meta': meta,
                               'fname': chfn(p)})
-                if 'misc' not in meta['type']:
+
+                if 'misc' not in meta.get('type'):
                     index.append({'title': meta['title'][0], 'fname': chfn(p)})
-                try:
-                    for state in meta['states']:
-                        states[state].append({'title': meta['title'][0],
-                                              'fname': chfn(p)})
-                    for prop in meta['properties']:
-                        props[prop].append({'title': meta['title'][0],
-                                            'fname': chfn(p)})
-                except KeyError as e:
-                    pass # `p` may not have any states/properties, e.g. misc
+
+                for pg in pgroup:
+                    if meta.get(pg):
+                        for m in meta[pg]:
+                            pgdict[pg][m].append({'title': meta['title'][0],
+                                                  'fname': chfn(p)}) 
 
         pages += [self.create_page_dict(c, n) for c, n in \
-                  list(zip([index, states, props], autogen_pages))]
+                  list(zip([index, *pgdict.values()], ['index', *pgdict.keys()]))]
         return pages
 
 

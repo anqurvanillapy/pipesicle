@@ -1,4 +1,4 @@
-title:      Barz
+title:      Qux
 type:       misc
 
 This document is invisible on the lists of `index`, `states` and `properties`,
