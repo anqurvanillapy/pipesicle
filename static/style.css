@@ -8,3 +8,8 @@ body {
 header, footer {
   text-align: center;
 }
+
+.codehilite {
+    background: transparent;
+    overflow: overlay;
+}

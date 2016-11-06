@@ -9,43 +9,30 @@
 
 
 from postocol import Postocol
-
-import codecs
 from os.path import basename, splitext
-
-from markdown import Markdown
-from bs4 import BeautifulSoup
 
 
 class ProjectSite(Postocol):
     """ProjectSite Example"""
     ifpath = 'preface.md'
     ofpath = 'index.html'
+    default_post_type = 'index'
 
     def __init__(self):
-        self.pymd_exts = ['fenced_code']
+        self.pymd_exts = ['fenced_code', 'codehilite']
 
     def run(self):
         self.tmpls = self.load_templates()
         self.posts = self.load_posts()
         self.pages = self.render(self.posts)
         self.publish(self.pages, self.tmpls)
+        self.send_codehilite_style('emacs')
 
     def render(self, posts):
         pages = []
         chfn = lambda x: '{}.html'.format(splitext(basename(x))[0])
-
-        for p in posts:
-            with codecs.open(p, 'r', encoding='utf-8') as f:
-                md = Markdown(extensions=self.pymd_exts)
-                html = BeautifulSoup(md.convert(f.read()), 'lxml')
-                html.html.hidden = True
-                html.body.hidden = True # remove html and body tags
-                meta = md.Meta
-                pages.append({'content': html,
-                              'meta': meta,
-                              'fname': chfn(p)})
-
+        for c, m, f in posts:
+            pages.append({'content': c, 'meta': m, 'fname': chfn(f)})
         return pages
 
 

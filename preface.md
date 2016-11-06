@@ -1,5 +1,4 @@
 title:  Postocol
-type:   index
 
 **Posting Protocol**, SSG (static site generator) abstract class for extensible
 use.
@@ -76,18 +75,13 @@ contains a minimalist webpage generator that ignores two unnecessary methods
 
 > Off we go!
 
-First, import everything we need to implement our own `render()` method, and
-some built-in tools for coping with encoding/decoding and path manipulation.
-In the meantime, create a class inheriting `Postocol` with some key constants.
+First, import everything we need to implement our own `render()` method. `os`
+module can help us modify the filenames in the following steps. In the meantime,
+create a class inheriting `Postocol` with some key constants.
 
 ```python
 from postocol import Postocol
-
-import codecs
 from os.path import basename, splitext
-
-from markdown import Markdown
-from bs4 import BeautifulSoup
 
 
 class Starter(Postocol):
@@ -98,8 +92,9 @@ class Starter(Postocol):
 Second, we add a `run()` method for the control flow, which goes like
 
 > Load templates from `templates` folder, and load `preface.md` to a list called
-`posts`. Render the Markdown file and bring the `pages` out. Finally, publish it
-to the file `index.html`, which is combined with our `templates` and `pages`.
+`posts`. Render the Markdown file and bring the `pages` out. Phew, finally, we
+can publish it to the file `index.html` right now, which is combined with our
+`templates` and `pages`.
 
 ```python
 def run(self):
@@ -110,44 +105,32 @@ def run(self):
 ```
 
 Eventually, here comes the boss! Now implement the abstract method `render()` to
-translate our Markdown page into HTML, collecting **3** kinds of the page
-information: `content` (the generated HTML content), `meta` (title, type, date,
-etc., right at the beginning of a Markdown post) and `fname` (filename). Notice
-that `BeautifulSoup` brings the HTML with nodes like
-`<html><body></body></html>`, which are not wanted in our content because later
-it will be rendered into the templates. Since `lxml` will help us conveniently
-eliminate those tags, we use it as the parser.
+extract the list of posts tuples to do some manipulation, and pass it to our
+pages list. `Postocol.load_posts()` collects **3** kinds of the page data:
+`content` (the generated HTML content), `meta` (title, type, date,
+etc., right at the beginning of a Markdown post) and `fname` (filename). Since
+we don't need to do something like auto-generating a table of contents in index,
+we now can straightly pass them to the page list.
 
 ```python
 def render(self, posts):
     pages = []
-    # Tiny function to add `.html` extension
+    # Tiny function to extract the filename and add a `.html` extension
     chfn = lambda x: '{}.html'.format(splitext(basename(x))[0])
 
-    for p in posts:
-        with codecs.open(p, 'r', encoding='utf-8') as f:
-            # Create an instance with loading the extensions, because we need
-            # `meta` of the post, which won't be parsed by default.
-            md = Markdown(extensions=self.pymd_exts)
-            html = BeautifulSoup(md.convert(f.read()), 'lxml')
-            # Remove `html` and `body` tags
-            html.html.hidden = True
-            html.body.hidden = True
-            # Attention, `meta` is quite like a `defaultdict(list)` that all
-            # metadata are stored in the list as `meta`'s value, even its length
-            # is just 1. E.g. {'title': ['Foo'], 'date': ['Nov 1, 2016']}.
-            meta = md.Meta
-            pages.append({'content': html,
-                          'meta': meta,
-                          'fname': chfn(p)})
+    for c, m, f in posts:
+        # Jinja2 renders the templates using kwargs, hence `pages` is a list
+        # of the dicts
+        pages.append({'content': c, 'meta': m, 'fname': chfn(f)})
 
     return pages
 ```
 
-What is inside the `preface.md` and the index template are not gonna be
-displayed right here. Check out the
-[branch](https://github.com/anqurvanillapy/postocol/tree/gh-pages) and run it to
-see what kinds of magic will just happen!
+What is inside the `preface.md` and the index template will not be displayed
+right here. Check out the
+[branch](https://github.com/anqurvanillapy/postocol/tree/gh-pages), where the
+generator uses `Postocol.send_codehilite_style()` to create code highlighting
+stylesheet for the code snippets. Run the script to see what magic will happen!
 
 ### Main Course
 
