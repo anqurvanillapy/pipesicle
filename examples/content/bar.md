@@ -5,3 +5,10 @@ states:     unfinished
 properties: compsci
 
 Just for fun.
+
+Code example:
+
+```python
+def foo():
+    print('Hello, world!')
+```

@@ -7,11 +7,7 @@
 """
 
 from postocol import Postocol
-
-import codecs
 from os.path import basename, splitext
-from markdown import Markdown
-from bs4 import BeautifulSoup
 
 
 class MockSSG(Postocol):

@@ -21,6 +21,9 @@ from bs4 import BeautifulSoup
 
 class SSG(Postocol):
     """SSG Example"""
+    def __init__(self):
+        self.pymd_exts = ['fenced_code', 'codehilite']
+
     def run(self):
         """Control flow goes here"""
         self.clean()
@@ -28,6 +31,7 @@ class SSG(Postocol):
         self.posts = self.load_posts()
         self.pages = self.render(self.posts)
         self.publish(self.pages, self.tmpls)
+        self.send_codehilite_style()
         self.send_static(join(self.ofpath, self.staticpath))
 
     def render(self, posts):
@@ -39,25 +43,18 @@ class SSG(Postocol):
         pgdict = {pg:defaultdict(list) for pg in pgroup}
         index = []
 
-        for p in posts:
-            with codecs.open(p, 'r', encoding='utf-8') as f:
-                md = Markdown(extensions=self.pymd_exts)
-                html = BeautifulSoup(md.convert(f.read()), 'lxml')
-                html.html.hidden = True
-                html.body.hidden = True # remove html and body tags
-                meta = md.Meta
-                pages.append({'content': html,
-                              'meta': meta,
-                              'fname': chfn(p)})
+        for c, m, f in posts:
+            pages.append({'content': c,
+                          'meta': m,
+                          'fname': chfn(f)})
 
-                if 'misc' not in meta.get('type'):
-                    index.append({'title': meta['title'][0], 'fname': chfn(p)})
+            if 'misc' not in m.get('type'):
+                index.append({'title': m['title'][0], 'fname': chfn(f)})
 
-                for pg in pgroup:
-                    if meta.get(pg):
-                        for m in meta[pg]:
-                            pgdict[pg][m].append({'title': meta['title'][0],
-                                                  'fname': chfn(p)}) 
+            for pg in pgroup:
+                for mname in m.get(pg, []):
+                    pgdict[pg][mname].append({'title': m['title'][0],
+                                              'fname': chfn(f)}) 
 
         pages += [self.create_page_dict(c, n) for c, n in \
                   list(zip([index, *pgdict.values()], ['index', *pgdict.keys()]))]

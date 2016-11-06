@@ -24,7 +24,7 @@ type:       index
 """]}
 
 
-invalid_markdown_text = """\
+no_type_markdown_text = """\
 title:      Qux
 
 # Qux

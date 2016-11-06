@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 {% block main %}
 <h1>Homepage</h1>
+<h2>Contents</h2>
 <ul>
   {% for item in content %}
   <li><a href="{{ item['fname'] }}">{{ item['title'] }}</a></li>

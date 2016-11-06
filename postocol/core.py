@@ -20,6 +20,7 @@ from abc import abstractmethod, ABCMeta
 from jinja2 import Environment, FileSystemLoader, exceptions
 from markdown import Markdown
 from bs4 import BeautifulSoup
+from pygments.formatters import HtmlFormatter
 
 
 class Postocol(metaclass=ABCMeta):
@@ -28,6 +29,7 @@ class Postocol(metaclass=ABCMeta):
     ofpath = 'site'
     tmplpath = 'templates'
     staticpath = 'static'
+    default_post_type = 'post'
     _pymd_exts = ['markdown.extensions.meta']
     _md_exts =  {'.markdown', '.mdown', '.mkdn', '.md', '.mkd', '.mdwn', '.mdtxt',
                 '.mdtext', '.text', '.txt'}
@@ -77,7 +79,9 @@ class Postocol(metaclass=ABCMeta):
         return tmpls
 
     def load_posts(self, fpath=None):
-        """Load valid posts from source directory"""
+        """\
+            Load valid posts from source directory
+        """
         if fpath == None:
             fpath = self.ifpath
 
@@ -98,9 +102,10 @@ class Postocol(metaclass=ABCMeta):
                             html.body.hidden = True
                             meta = md.Meta
 
-                            if meta['type']:
-                                # Let KeyError propagate for reminding
-                                posts.append((html, meta, f))
+                            if not meta.get('type'):
+                                meta['type'] = [self.default_post_type]
+
+                            posts.append((html, meta, f))
 
             if not posts:
                 print('warning: Nothing to publish')
@@ -151,5 +156,13 @@ class Postocol(metaclass=ABCMeta):
         else:
             raise TypeError('Invalid manual page dict')
 
-    def send_codehightlite_style(self, theme, dest):
-        pass
+    def send_codehilite_style(self, dest=None, theme='default'):
+        """Send Pygments stylesheet to dest directory"""
+        if dest == None:
+            dest = self.staticpath
+
+        hl = HtmlFormatter(style=theme).get_style_defs('.codehilite')
+        fname = path.join(dest, 'codehilite.css')
+
+        with open(fname, 'w') as f:
+            f.write(hl)

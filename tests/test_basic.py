@@ -50,12 +50,12 @@ class TestSSGBasic(unittest.TestCase):
             self.assertFalse(self.ssg.load_posts())
 
     def test_load_no_type_meta_post(self):
-        with self.assertRaises(KeyError):
-            with tmpfile(suffix='.md', mode='w+t') as tmp:
-                tmp.write(md.invalid_markdown_text)
-                tmp.seek(0)
-                self.ssg.ifpath = tmp.name
-                self.ssg.load_posts()
+        with tmpfile(suffix='.md', mode='w+t') as tmp:
+            tmp.write(md.no_type_markdown_text)
+            tmp.seek(0)
+            self.ssg.ifpath = tmp.name
+            post = self.ssg.load_posts()
+            self.assertTrue(self.ssg.default_post_type in post[0][1]['type'])
 
     def test_render_post(self):
         with tmpdir() as tmp:
@@ -166,5 +166,9 @@ class TestSSGBasic(unittest.TestCase):
         page = self.ssg.create_page_dict([], 'index')
         self.assertTrue('index' in page['meta']['type'])
 
-    def test_send_codehighlite_style(self):
-        pass
+    def test_send_codehilite_style(self):
+        with tmpdir() as tmp:
+            tmp_path = Path(tmp)
+            hlcss = tmp_path / 'codehilite.css'
+            self.ssg.send_codehilite_style(str(tmp_path))
+            self.assertTrue(hlcss.exists())
