@@ -18,53 +18,34 @@
 <hr>
 
 <main>
-<article><p><strong>Posting Protocol</strong>, SSG (static site generator) abstract class for extensible
-use.</p>
-<blockquote>
-<p>Fork me on <a href="https://github.com/anqurvanillapy/postocol">GitHub</a>!</p>
-</blockquote>
-<h2>Implementation Workflow</h2>
-<ul>
-<li>There are <strong>3</strong> document types that Postocol mainly serves, which are:<ul>
-<li>Single page (e.g. slideshow)</li>
-<li>Blog</li>
-<li>Wiki</li>
-</ul>
-</li>
-<li>Therefore, Postocol will by default trace <strong>6</strong> types of templates as follows:<ul>
-<li><code>index</code>, for blog or wiki, or even the slideshow (because it can be stored
-in one static HTML file, hence assuming that it is an index page)</li>
-<li><code>post</code>, for blog or wiki, e.g. an article</li>
-<li><code>states</code>, mainly for wiki, a list containing the current states of a post,
-e.g. <em>unfinished</em>, <em>not proofread</em>, <em>stub</em>, etc., similar to
-<a href="https://en.wikipedia.org/wiki/Wikipedia:Tagging_pages_for_problems">Wikipedia:Tagging pages for problems</a></li>
-<li><code>properties</code>, for wiki or blog, a list of the properties of a post, e.g.
-<em>howto</em>, <em>daily</em>, <em>compsci</em>, <em>PoC</em>, etc., similarly the categories or tags</li>
-<li><code>misc</code>, something you want to provide independently, instead of listing in
-<code>index</code>, <code>states</code> or <code>properties</code>, e.g. <em>about</em>, <em>contact</em>, <em>resume</em>, etc.</li>
-<li><code>layout</code>, serving something above</li>
-</ul>
-</li>
-<li><strong>Additionally</strong>, <code>index</code>, <code>states</code> and <code>properties</code> could be automatically
-generated from self-implemented <code>Postocol.render()</code> method.</li>
-</ul>
-<h3>For single-page (slideshow) generator</h3>
-<p>There is no need to <code>clean()</code> anything and <code>send_static()</code> for a single-page
-generator, so the workflow is simple. For instance, a slideshow generator might
-act like this.</p>
-<div class="codehilite"><pre><span></span>                    load_templates()     publish()
-                          |                  |
-                          v                  v
-(slides.md) --+------- template ---+--&gt; (index.html)
-              |                    |
-              +-- post ---&gt; page --+
-                   ^          ^
-                   |          |
-            load_posts()   render()
+<article><p><em>Fork me on <a href="https://github.com/anqurvanillapy/postocol">GitHub</a>!</em></p>
+<p><strong>Posting Protocol</strong>, an opinionated abstract class for creating homemade static
+site generator (SSG).</p>
+<h2>Ad Hoc Workflow, But Extensive</h2>
+<p>A simplified workflow of a single-page generator can mainly be like this:</p>
+<div class="codehilite"><pre><span></span>                  load_templates()     publish()
+                        |                  |
+                        v                  v
+(text.md) --+------- template ---+--&gt; (index.html)
+            |                    |
+            +-- post ---&gt; page --+
+                 ^          ^
+                 |          |
+          load_posts()   render()
 </pre></div>
-<h3>For blog/wiki generator</h3>
-<p>Wiki uses the whole functionality to update all the posts, whereas the workflow
-of a blog generator is similar:</p>
+<p>Load the <code>text.md</code> and render it using <code>python-markdown</code> and <code>BeautifulSoup4</code>.
+In the meantime load the templates by <code>jinja2.Environment</code> and its
+<code>FileSystemLoader</code>. Note that <code>render()</code> method is abstract and should be
+implemented, where you could specify the manipulation of the preliminarily
+rendered posts, e.g.</p>
+<ul>
+<li>creating your own table of contents,</li>
+<li>separating the Markdown text into different sections for creating a slideshow
+presentation,</li>
+<li>collecting the posts' <em>tags</em>, <em>categories</em>, etc., generating a list for them.</li>
+</ul>
+<p>By doing these above, you've extended your homemade SSG into a <em>wiki</em>-like tool,
+and a <em>blog</em> has a similar workflow as well.</p>
 <div class="codehilite"><pre><span></span>(foo.md) --+
 (bar.md) --+  clean(site/)  load_templates()  publish()  send_static()
            |         |            |              |             |
@@ -76,73 +57,55 @@ of a blog generator is similar:</p>
                           |         |                   +-- (foo.html)
                    load_posts()  render()               +-- (bar.html)
 </pre></div>
-<h2>Examples</h2>
-<h3>Starter</h3>
-<p>The project site hosted on
-<a href="https://github.com/anqurvanillapy/postocol/tree/gh-pages">gh-pages branch</a>
-contains a minimalist webpage generator that ignores two unnecessary methods
-<code>clean()</code> and <code>send_static()</code>, which can be your first sight under the hood.</p>
-<blockquote>
-<p>Off we go!</p>
-</blockquote>
-<p>First, import everything we need to implement our own <code>render()</code> method. <code>os</code>
-module can help us modify the filenames in the following steps. In the meantime,
-create a class inheriting <code>Postocol</code> with some key constants.</p>
+<p>In this new one, you might need to clean the legacy generated pages ahead of
+your publishing, and in the end of the control flow, send the static assets to
+your <code>site/</code> folder, e.g. stylesheets, scripts, images.</p>
+<h2>All You Need Is Implementing One Abstract Method</h2>
+<p>The method is <code>render()</code>, in the workflow graphs above.</p>
+<p>This project site was initially generated by this following snippet, which looks
+<strong>weird</strong> but would be concise if you've gone through Postocol's philosophy.</p>
 <div class="codehilite"><pre><span></span><span class="kn">from</span> <span class="nn">postocol</span> <span class="kn">import</span> <span class="n">Postocol</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">splitext</span>
 
 
-<span class="k">class</span> <span class="nc">Starter</span><span class="p">(</span><span class="n">Postocol</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">SSG</span><span class="p">(</span><span class="n">Postocol</span><span class="p">):</span>
     <span class="n">ifpath</span> <span class="o">=</span> <span class="s1">'preface.md'</span>
     <span class="n">ofpath</span> <span class="o">=</span> <span class="s1">'index.html'</span>
-</pre></div>
-<p>Second, we add a <code>run()</code> method for the control flow, which goes like</p>
-<blockquote>
-<p>Load templates from <code>templates</code> folder, and load <code>preface.md</code> to a list called
-<code>posts</code>. Render the Markdown file and bring the <code>pages</code> out. Phew, finally, we
-can publish it to the file <code>index.html</code> right now, which is combined with our
-<code>templates</code> and <code>pages</code>.</p>
-</blockquote>
-<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">tmpls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_templates</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">posts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_posts</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">pages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">posts</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pages</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tmpls</span><span class="p">)</span>
-</pre></div>
-<p>Eventually, here comes the boss! Now implement the abstract method <code>render()</code> to
-extract the list of posts tuples to do some manipulation, and pass it to our
-pages list. <code>Postocol.load_posts()</code> collects <strong>3</strong> kinds of the page data:
-<code>content</code> (the generated HTML content), <code>meta</code> (title, type, date,
-etc., right at the beginning of a Markdown post) and <code>fname</code> (filename). Since
-we don't need to do something like auto-generating a table of contents in index,
-we now can straightly pass them to the page list.</p>
-<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">posts</span><span class="p">):</span>
-    <span class="n">pages</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="c1"># Tiny function to extract the filename and add a `.html` extension</span>
-    <span class="n">chfn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">'{}.html'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">splitext</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">x</span><span class="p">))[</span><span class="mi">0</span><span class="p">])</span>
 
-    <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">posts</span><span class="p">:</span>
-        <span class="c1"># Jinja2 renders the templates using kwargs, hence `pages` is a list</span>
-        <span class="c1"># of the dicts</span>
-        <span class="n">pages</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">'content'</span><span class="p">:</span> <span class="n">c</span><span class="p">,</span> <span class="s1">'meta'</span><span class="p">:</span> <span class="n">m</span><span class="p">,</span> <span class="s1">'fname'</span><span class="p">:</span> <span class="n">chfn</span><span class="p">(</span><span class="n">f</span><span class="p">)})</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tmpls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_templates</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">posts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_posts</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">posts</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pages</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tmpls</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">pages</span>
+    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">posts</span><span class="p">):</span>
+        <span class="n">pages</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">chfn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">'{}.html'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">splitext</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">x</span><span class="p">))[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">posts</span><span class="p">:</span>
+            <span class="n">pages</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">'content'</span><span class="p">:</span> <span class="n">c</span><span class="p">,</span> <span class="s1">'meta'</span><span class="p">:</span> <span class="n">m</span><span class="p">,</span> <span class="s1">'fname'</span><span class="p">:</span> <span class="n">chfn</span><span class="p">(</span><span class="n">f</span><span class="p">)})</span>
+
+        <span class="k">return</span> <span class="n">pages</span>
 </pre></div>
-<p>What is inside the <code>preface.md</code> and the index template will not be displayed
-right here. Check out the
-<a href="https://github.com/anqurvanillapy/postocol/tree/gh-pages">branch</a>, where the
-generator uses <code>Postocol.send_codehilite_style()</code> to create code highlighting
-stylesheet for the code snippets. Run the script to see what magic will happen!</p>
-<h3>Main Course</h3>
-<p>See <a href="https://github.com/anqurvanillapy/postocol/tree/master/examples">examples</a>
-directory that offers a fully implemented <strong>wiki</strong> generator demo, which may
-help you fast-prototyping your own generator.</p></article>
+<h2>Check Out The Repo For More Details</h2>
+<p>The repo is hosted on <a href="https://github.com/anqurvanillapy/postocol">GitHub</a>,
+where there are a full manual on the <code>README.md</code> and an example of creating a
+well-featured prototyped <strong>wiki generator</strong>.</p>
+<div class="codehilite"><pre><span></span>$ git clone git@github.com:anqurvanillapy/postocol.git
+$ <span class="nb">cd</span> postocol
+$ python3 setup.py install
+</pre></div>
+<p>Anyway, feel free to create your issues, fork and pull your requests.</p>
+<h2>License</h2>
+<p>MIT</p></article>
 </main>
 
 <hr>
 
 <footer>
 <p>
+Created by
+<a href="https://github.com/anqurvanillapy/">AnqurVanillapy</a>.
 Published by
 <a href="https://github.com/anqurvanillapy/postocol">Postocol</a>,
 indeed.

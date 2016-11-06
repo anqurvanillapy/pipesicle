@@ -26,7 +26,7 @@ class ProjectSite(Postocol):
         self.posts = self.load_posts()
         self.pages = self.render(self.posts)
         self.publish(self.pages, self.tmpls)
-        self.send_codehilite_style('emacs')
+        self.send_codehilite_style('trac')
 
     def render(self, posts):
         pages = []
