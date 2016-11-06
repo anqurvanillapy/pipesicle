@@ -4,17 +4,21 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" type="text/css" href="static/codehilite.css">
   <link rel="stylesheet" type="text/css" href="static/style.css">
 
   <title>Postocol</title>
 </head>
 <body>
-  <header>
-    <h1>Postocol</h1>
-  </header>
-  <hr>
-  <main>
-    <article><p><strong>Posting Protocol</strong>, SSG (Static site generator) abstract class for extensible
+
+<header>
+<h1>Postocol</h1>
+</header>
+
+<hr>
+
+<main>
+<article><p><strong>Posting Protocol</strong>, SSG (static site generator) abstract class for extensible
 use.</p>
 <blockquote>
 <p>Fork me on <a href="https://github.com/anqurvanillapy/postocol">GitHub</a>!</p>
@@ -48,7 +52,7 @@ generated from self-implemented <code>Postocol.render()</code> method.</li>
 <p>There is no need to <code>clean()</code> anything and <code>send_static()</code> for a single-page
 generator, so the workflow is simple. For instance, a slideshow generator might
 act like this.</p>
-<pre><code>                    load_templates()     publish()
+<div class="codehilite"><pre><span></span>                    load_templates()     publish()
                           |                  |
                           v                  v
 (slides.md) --+------- template ---+--&gt; (index.html)
@@ -57,11 +61,11 @@ act like this.</p>
                    ^          ^
                    |          |
             load_posts()   render()
-</code></pre>
+</pre></div>
 <h3>For blog/wiki generator</h3>
 <p>Wiki uses the whole functionality to update all the posts, whereas the workflow
 of a blog generator is similar:</p>
-<pre><code>(foo.md) --+
+<div class="codehilite"><pre><span></span>(foo.md) --+
 (bar.md) --+  clean(site/)  load_templates()  publish()  send_static()
            |         |            |              |             |
            v         v            v              v             v
@@ -71,7 +75,7 @@ of a blog generator is similar:</p>
                           ^         ^                   +-- (properties.html)
                           |         |                   +-- (foo.html)
                    load_posts()  render()               +-- (bar.html)
-</code></pre>
+</pre></div>
 <h2>Examples</h2>
 <h3>Starter</h3>
 <p>The project site hosted on
@@ -81,78 +85,69 @@ contains a minimalist webpage generator that ignores two unnecessary methods
 <blockquote>
 <p>Off we go!</p>
 </blockquote>
-<p>First, import everything we need to implement our own <code>render()</code> method, and
-some built-in tools for coping with encoding/decoding and path manipulation.
-In the meantime, create a class inheriting <code>Postocol</code> with some key constants.</p>
-<pre><code class="python">from postocol import Postocol
-
-import codecs
-from os.path import basename, splitext
-
-from markdown import Markdown
-from bs4 import BeautifulSoup
+<p>First, import everything we need to implement our own <code>render()</code> method. <code>os</code>
+module can help us modify the filenames in the following steps. In the meantime,
+create a class inheriting <code>Postocol</code> with some key constants.</p>
+<div class="codehilite"><pre><span></span><span class="kn">from</span> <span class="nn">postocol</span> <span class="kn">import</span> <span class="n">Postocol</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">splitext</span>
 
 
-class Starter(Postocol):
-    ifpath = 'preface.md'
-    ofpath = 'index.html'
-</code></pre>
+<span class="k">class</span> <span class="nc">Starter</span><span class="p">(</span><span class="n">Postocol</span><span class="p">):</span>
+    <span class="n">ifpath</span> <span class="o">=</span> <span class="s1">'preface.md'</span>
+    <span class="n">ofpath</span> <span class="o">=</span> <span class="s1">'index.html'</span>
+</pre></div>
 <p>Second, we add a <code>run()</code> method for the control flow, which goes like</p>
 <blockquote>
 <p>Load templates from <code>templates</code> folder, and load <code>preface.md</code> to a list called
-<code>posts</code>. Render the Markdown file and bring the <code>pages</code> out. Finally, publish it
-to the file <code>index.html</code>, which is combined with our <code>templates</code> and <code>pages</code>.</p>
+<code>posts</code>. Render the Markdown file and bring the <code>pages</code> out. Phew, finally, we
+can publish it to the file <code>index.html</code> right now, which is combined with our
+<code>templates</code> and <code>pages</code>.</p>
 </blockquote>
-<pre><code class="python">def run(self):
-    self.tmpls = self.load_templates()
-    self.posts = self.load_posts()
-    self.pages = self.render(self.posts)
-    self.publish(self.pages, self.tmpls)
-</code></pre>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">tmpls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_templates</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">posts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_posts</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">pages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">posts</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pages</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tmpls</span><span class="p">)</span>
+</pre></div>
 <p>Eventually, here comes the boss! Now implement the abstract method <code>render()</code> to
-translate our Markdown page into HTML, collecting <strong>3</strong> kinds of the page
-information: <code>content</code> (the generated HTML content), <code>meta</code> (title, type, date,
-etc., right at the beginning of a Markdown post) and <code>fname</code> (filename). Notice
-that <code>BeautifulSoup</code> brings the HTML with nodes like
-<code>&lt;html&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;</code>, which are not wanted in our content because later
-it will be rendered into the templates. Since <code>lxml</code> will help us conveniently
-eliminate those tags, we use it as the parser.</p>
-<pre><code class="python">def render(self, posts):
-    pages = []
-    # Tiny function to add `.html` extension
-    chfn = lambda x: '{}.html'.format(splitext(basename(x))[0])
+extract the list of posts tuples to do some manipulation, and pass it to our
+pages list. <code>Postocol.load_posts()</code> collects <strong>3</strong> kinds of the page data:
+<code>content</code> (the generated HTML content), <code>meta</code> (title, type, date,
+etc., right at the beginning of a Markdown post) and <code>fname</code> (filename). Since
+we don't need to do something like auto-generating a table of contents in index,
+we now can straightly pass them to the page list.</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">posts</span><span class="p">):</span>
+    <span class="n">pages</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># Tiny function to extract the filename and add a `.html` extension</span>
+    <span class="n">chfn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">'{}.html'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">splitext</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">x</span><span class="p">))[</span><span class="mi">0</span><span class="p">])</span>
 
-    for p in posts:
-        with codecs.open(p, 'r', encoding='utf-8') as f:
-            # Create an instance with loading the extensions, because we need
-            # `meta` of the post, which won't be parsed by default.
-            md = Markdown(extensions=self.pymd_exts)
-            html = BeautifulSoup(md.convert(f.read()), 'lxml')
-            # Remove `html` and `body` tags
-            html.html.hidden = True
-            html.body.hidden = True
-            # Attention, `meta` is quite like a `defaultdict(list)` that all
-            # metadata are stored in the list as `meta`'s value, even its length
-            # is just 1. E.g. {'title': ['Foo'], 'date': ['Nov 1, 2016']}.
-            meta = md.Meta
-            pages.append({'content': html,
-                          'meta': meta,
-                          'fname': chfn(p)})
+    <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">posts</span><span class="p">:</span>
+        <span class="c1"># Jinja2 renders the templates using kwargs, hence `pages` is a list</span>
+        <span class="c1"># of the dicts</span>
+        <span class="n">pages</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">'content'</span><span class="p">:</span> <span class="n">c</span><span class="p">,</span> <span class="s1">'meta'</span><span class="p">:</span> <span class="n">m</span><span class="p">,</span> <span class="s1">'fname'</span><span class="p">:</span> <span class="n">chfn</span><span class="p">(</span><span class="n">f</span><span class="p">)})</span>
 
-    return pages
-</code></pre>
-<p>What is inside the <code>preface.md</code> and the index template are not gonna be
-displayed right here. Check out the
-<a href="https://github.com/anqurvanillapy/postocol/tree/gh-pages">branch</a> and run it to
-see what kinds of magic will just happen!</p>
+    <span class="k">return</span> <span class="n">pages</span>
+</pre></div>
+<p>What is inside the <code>preface.md</code> and the index template will not be displayed
+right here. Check out the
+<a href="https://github.com/anqurvanillapy/postocol/tree/gh-pages">branch</a>, where the
+generator uses <code>Postocol.send_codehilite_style()</code> to create code highlighting
+stylesheet for the code snippets. Run the script to see what magic will happen!</p>
 <h3>Main Course</h3>
 <p>See <a href="https://github.com/anqurvanillapy/postocol/tree/master/examples">examples</a>
 directory that offers a fully implemented <strong>wiki</strong> generator demo, which may
 help you fast-prototyping your own generator.</p></article>
-  </main>
-  <hr>
-  <footer>
-    <p>Published by <a href="https://github.com/anqurvanillapy/postocol">Postocol</a>, indeed.</p>
-  </footer>
+</main>
+
+<hr>
+
+<footer>
+<p>
+Published by
+<a href="https://github.com/anqurvanillapy/postocol">Postocol</a>,
+indeed.
+</p>
+</footer>
+
 </body>
 </html>
