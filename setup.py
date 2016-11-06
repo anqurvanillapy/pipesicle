@@ -13,9 +13,14 @@ setup(
     author='AnqurVanillapy',
     author_email='anqurvanillapy@gmail.com',
     packages=['postocol'],
-    install_requires=['Jinja2>=2.8'],
+    install_requires=[
+        'Jinja2>=2.8',
+        'Markdown>=2.6.7',
+        'Pygments>=2.1.3',
+        'beautifulsoup4>=4.5.1'
+    ],
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'Environment :: Console',
         'License :: OSI Approved :: MIT License',

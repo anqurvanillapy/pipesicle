@@ -170,5 +170,5 @@ class TestSSGBasic(unittest.TestCase):
         with tmpdir() as tmp:
             tmp_path = Path(tmp)
             hlcss = tmp_path / 'codehilite.css'
-            self.ssg.send_codehilite_style(str(tmp_path))
+            self.ssg.send_codehilite_style('emacs', str(tmp_path))
             self.assertTrue(hlcss.exists())

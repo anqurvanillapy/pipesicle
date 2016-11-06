@@ -4,15 +4,10 @@
     ========
 
     Posting Protocol: Abstract class for creating homemade static site generator
-
-    - Abstract methods:
-        + `render()`: Render pages
-    - Notice:
-        + Page dict should contain at least 3 keys: `content`, `meta`, and `fname`
 """
 
 
-import errno, codecs
+import codecs, errno
 from shutil import copytree, rmtree
 from os import makedirs, remove, path, listdir, strerror
 from abc import abstractmethod, ABCMeta
@@ -80,7 +75,9 @@ class Postocol(metaclass=ABCMeta):
 
     def load_posts(self, fpath=None):
         """\
-            Load valid posts from source directory
+            - Load valid posts from source directory
+            - Convert the text to extract the HTML data, metas and filenames
+            - Returns a list of tuples that store the above information
         """
         if fpath == None:
             fpath = self.ifpath
@@ -156,7 +153,7 @@ class Postocol(metaclass=ABCMeta):
         else:
             raise TypeError('Invalid manual page dict')
 
-    def send_codehilite_style(self, dest=None, theme='default'):
+    def send_codehilite_style(self, theme='default', dest=None):
         """Send Pygments stylesheet to dest directory"""
         if dest == None:
             dest = self.staticpath

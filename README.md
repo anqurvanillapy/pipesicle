@@ -237,11 +237,11 @@ about how to autogenerate an `index` (or `states`, etc.), please check out the
 [examples](https://github.com/anqurvanillapy/postocol/tree/master/examples)
 directory, where there is a wiki generator.
 
-### `Postocol.send_codehilite_style(dest, theme)`
+### `Postocol.send_codehilite_style(theme, dest)`
 
-|`dest` Type|`theme` Type|Return|
+|`theme` Type|`dest` Type|Return|
 |:-:|:-:|:-:|
-|`str`; `self.staticpath` by default|`str`; `'default'` by default|Void|
+|`str`; `'default'` by default|`str`; `self.staticpath` by default|Void|
 
 Create a [pygments.styles](http://pygments.org/docs/styles/) stylesheet with
 CSS class name `.codehilite` for the use of `python-markdown`'s extension,
